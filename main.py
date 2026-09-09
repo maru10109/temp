@@ -71,7 +71,9 @@ else:
     x_all = df['연도'].values
     y_all = df['평균기온'].values
     m_all, c_all = np.polyfit(x_all, y_all, 1)
-    rise_100_all = m_all * 100
+    
+    # 1년 기울기에 100을 곱해 '100년당 상승폭' 계산
+    rise_100_all = m_all * 100 
     corr_all = np.corrcoef(x_all, y_all)[0, 1]
     
     start_year = x_all.min()
@@ -83,6 +85,8 @@ else:
     x_rec = recent_df['연도'].values
     y_rec = recent_df['평균기온'].values
     m_rec, c_rec = np.polyfit(x_rec, y_rec, 1)
+    
+    # 최근 20년 기준 '100년당 상승폭' 계산
     rise_100_rec = m_rec * 100
 
     st.markdown("### 🔥 지구 온난화 가속도: 100년당 기온 상승 폭")
