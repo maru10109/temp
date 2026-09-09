@@ -117,16 +117,30 @@ else:
 
     st.markdown("---")
     st.markdown("### 🔮 연도별 예상 기온 시뮬레이터")
-    st.write("슬라이더를 움직여 특정 연도의 예상 연평균 기온을 확인해 보세요. (전체 기간 추세선 기준)")
+    st.write("슬라이더를 움직여 특정 연도의 예상 연평균 기온을 확인해 보세요. **전체 기간의 완만한 추세**와 **최근 20년의 가팔라진 추세**를 비교해 볼 수 있습니다.")
     
     selected_year = st.slider("예측할 연도를 선택하세요", min_value=1900, max_value=2100, value=2050, step=1)
-    predicted_temp = m_all * selected_year + c_all
     
-    # 큼직하게 예측 결과 표시
-    st.markdown(f"<div class='big-text' style='text-align: center; padding: 20px; background-color: #fff3cd; border-radius: 15px; margin-bottom: 20px;'>"
-                f"<span style='font-size: 1.5rem; color:#856404;'>{selected_year}년의 예상 서울 연평균 기온은</span><br>"
-                f"<span class='big-font'>{predicted_temp:.2f} ℃</span>"
-                f"</div>", unsafe_allow_html=True)
+    # 두 가지 기준에 대한 예측값 계산
+    pred_all = m_all * selected_year + c_all
+    pred_rec = m_rec * selected_year + c_rec
+    
+    # 큼직하게 예측 결과 나란히 비교 표시
+    st.markdown(f"""
+        <div style='display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;'>
+            <div style='flex: 1; min-width: 250px; text-align: center; padding: 20px; background-color: #e0f7fa; border-radius: 15px; border: 2px solid #006d77;'>
+                <span style='font-size: 1.2rem; color:#006d77; font-weight: bold;'>📉 전체 기간 추세 반영 시</span><br>
+                <span style='font-size: 1rem; color:#555;'>({start_year}년 ~ {end_year}년 기준)</span><br>
+                <span style='font-size: 2.8rem; font-weight: 900; color: #006d77;'>{pred_all:.2f} ℃</span>
+            </div>
+            <div style='flex: 1; min-width: 250px; text-align: center; padding: 20px; background-color: #ffe5d9; border-radius: 15px; border: 2px solid #e26d5c;'>
+                <span style='font-size: 1.2rem; color:#e26d5c; font-weight: bold;'>📈 최근 20년 가속화 추세 반영 시</span><br>
+                <span style='font-size: 1rem; color:#555;'>({end_year-19}년 ~ {end_year}년 기준)</span><br>
+                <span style='font-size: 2.8rem; font-weight: 900; color: #e26d5c;'>{pred_rec:.2f} ℃</span><br>
+                <span style='font-size: 1.1rem; color: #c1121f; font-weight: bold;'>(전체 추세 대비 {(pred_rec - pred_all):+.2f} ℃)</span>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
     fig = go.Figure()
 
@@ -165,19 +179,29 @@ else:
         line=dict(color='#e26d5c', width=3, dash='dashdot')
     ))
 
-    # 예측값 마커 (별 모양)
+    # 예측값 마커 1: 전체 추세선 기준
     fig.add_trace(go.Scatter(
-        x=[selected_year], y=[predicted_temp],
+        x=[selected_year], y=[pred_all],
         mode='markers+text',
-        name=f'{selected_year}년 예측값',
-        text=[f"{predicted_temp:.2f}℃"],
+        name=f'{selected_year}년 예측 (전체 추세)',
+        text=[f"전체: {pred_all:.2f}℃"],
         textposition="top center",
-        marker=dict(color='#ffb703', size=18, symbol='star', line=dict(color='black', width=1))
+        marker=dict(color='#006d77', size=18, symbol='star', line=dict(color='black', width=1))
+    ))
+
+    # 예측값 마커 2: 최근 20년 추세선 기준
+    fig.add_trace(go.Scatter(
+        x=[selected_year], y=[pred_rec],
+        mode='markers+text',
+        name=f'{selected_year}년 예측 (최근 20년 추세)',
+        text=[f"최근: {pred_rec:.2f}℃"],
+        textposition="bottom center",
+        marker=dict(color='#e26d5c', size=18, symbol='star', line=dict(color='black', width=1))
     ))
 
     # 그래프 레이아웃 설정
     fig.update_layout(
-        title=dict(text="서울 연평균 기온 변화 시계열 및 예측", font=dict(size=22)),
+        title=dict(text="서울 연평균 기온 변화 시계열 및 예측 비교", font=dict(size=22)),
         xaxis_title="연도 (년)",
         yaxis_title="연평균 기온 (℃)",
         hovermode="x unified",
